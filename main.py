@@ -1,6 +1,7 @@
 import json
 import requests
 from bs4 import BeautifulSoup
+from bs4 import SoupStrainer
 
 POST_LOGO = "https://www.washingtonpost.com/touch-icon-iphone-retina.png"
 BOOKS = ["https://www.washingtonpost.com/entertainment/books/fiction/",
@@ -21,11 +22,12 @@ def sorter(el):
 def get_json_feed(debug):
     feed_items = []
     c = 0
+    only_script_tags = SoupStrainer("script")
     for url in BOOKS:
         c += 1
         print("GET " + url)
         page = requests.get(url)
-        page_soup = BeautifulSoup(page.content, 'html.parser')
+        page_soup = BeautifulSoup(page.content, 'html.parser', parse_only=only_script_tags)
         print("Parsed")
 
         post_data_soup = page_soup.find("script", {"id": "__NEXT_DATA__"})
