@@ -8,7 +8,10 @@ BOOKS = ["https://www.washingtonpost.com/entertainment/books/fiction/",
 
 
 def lambda_handler(event, context):
-    return get_json_feed(False)
+    return {
+        'statusCode': 200,
+        'body': get_json_feed(False)
+    }
 
 
 def sorter(el):
@@ -40,8 +43,8 @@ def get_json_feed(debug):
             article_title = item["headlines"]["basic"]
             print(article_title)
             article_date = item["first_publish_date"]
-            article_body = item["description"]["basic"]
             article_image = item["additional_properties"]["lead_art"]["additional_properties"]["thumbnailResizeUrl"]
+            article_body = "<p><img src='" + article_image + "'/><p>" + item["description"]["basic"] + "</p>"
             article_author = item["credits"]["by"][0]["name"]
 
             feed_article = {
@@ -49,7 +52,7 @@ def get_json_feed(debug):
                 'title': article_title,
                 'authors': [{'name': article_author}],
                 'url': article_url,
-                'content_text': article_body,
+                'content_html': article_body,
                 'date_published': article_date,
                 'image': article_image,
             }
