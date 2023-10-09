@@ -1,9 +1,8 @@
 import json
 import requests
-from bs4 import BeautifulSoup
-from bs4 import SoupStrainer
 
 POST_LOGO = "https://www.washingtonpost.com/touch-icon-iphone-retina.png"
+START_MARKER = '<script id="__NEXT_DATA__" type="application/json">'
 BOOKS = ["https://www.washingtonpost.com/entertainment/books/fiction/",
          "https://www.washingtonpost.com/entertainment/books/nonfiction/"]
 
@@ -22,22 +21,22 @@ def sorter(el):
 def get_json_feed(debug):
     feed_items = []
     c = 0
-    only_script_tags = SoupStrainer("script")
     for url in BOOKS:
         c += 1
         print("GET " + url)
         page = requests.get(url)
-        page_soup = BeautifulSoup(page.content, 'html.parser', parse_only=only_script_tags)
-        print("Parsed")
-
-        post_data_soup = page_soup.find("script", {"id": "__NEXT_DATA__"})
-        post_data = json.loads(post_data_soup.text)
+        txt = page.text
+        start = txt.index(START_MARKER)
+        end = txt.index('</script>', start)
+        print("Found JSON " + str(start) + "-" + str(end))
+        json_string = txt[start+len(START_MARKER):end]
+        json_data = json.loads(json_string)
         if debug:
             post_file = open("post_" + str(c) + ".json", "w")
-            post_file.write(json.dumps(post_data, indent=2))
+            post_file.write(json.dumps(json_data, indent=2))
             post_file.close()
 
-        items = post_data["props"]["pageProps"]["globalContent"]["items"]
+        items = json_data["props"]["pageProps"]["globalContent"]["items"]
         print("Post Data Items " + str(len(items)))
         for item in items:
             article_id = item["_id"]
